@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include "hal.h"
+#include "hal_driver.h"
 
 #define TIMER_CONTROL_PORT 0x43
 #define TIMER_DATA_PORT 0x40

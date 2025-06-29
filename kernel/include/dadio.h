@@ -1,6 +1,8 @@
 #ifndef dadio_h
 #define dadio_h
 
+// This file is deprecated. Use dadio_driver.h instead.
+
 #include <stdint.h>
 
 enum vga_color {

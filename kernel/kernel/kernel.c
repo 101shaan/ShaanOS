@@ -1,12 +1,12 @@
 #include<stdint.h> 
-#include "dadio.h"
+#include "ata_driver.h"
+#include "dadio_driver.h"
+#include "hal_driver.h"
 #include "phymem.h"
 #include "virtmem.h"
 #include "timer.h"
 #include "keyboard.h"
-#include "hal.h"
 #include "inthandling.h"
-#include "ATA.h"
 #include "FAT12.h"
 
 extern void kshell();

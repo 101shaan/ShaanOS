@@ -1,6 +1,8 @@
 #ifndef HAL_H
 #define HAL_H
 
+// This file is deprecated. Use hal_driver.h instead.
+
 //Structure definitions
 typedef struct __attribute__ ((__packed__)) idtr {
 	uint16_t		limit;

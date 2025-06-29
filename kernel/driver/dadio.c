@@ -146,9 +146,11 @@ char get_monitor_char()
 			{if(x=='4')
 			return x;else
 			return 17;}
-		else if(scanned==0x4d){if(x=='6')
+		else if(scanned==0x4D){if(x=='6')
 			return x;else return 18;}
 		if (x)
 			return (x);
 	}
 }
+
+// This file is deprecated. Use dadio_driver.c instead.

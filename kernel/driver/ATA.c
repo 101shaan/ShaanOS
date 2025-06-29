@@ -59,3 +59,5 @@ static void ATA_wait_RDY()  //Wait fot rdy to be 1
 	while(!read_port(0x1F7)&STATUS_RDY);
 }
 */
+
+// This file is deprecated. Use ata_driver.c instead.

@@ -2,7 +2,8 @@
 #include<stdint.h> 
 #include<stdbool.h>
 #include"phymem.h"
-#include"dadio.h"
+#include"dadio_driver.h"
+#include"hal_driver.h"
 
 // Constant definitions:
 #define PMMAP 0x1000

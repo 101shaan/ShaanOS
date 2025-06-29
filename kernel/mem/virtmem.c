@@ -13,8 +13,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "dadio.h"
-#include "hal.h"
+#include "dadio_driver.h"
+#include "hal_driver.h"
 #include "phymem.h"
 #include "virtmem.h"
 
@@ -178,7 +178,7 @@ uint32_t virtual_to_physical (uint32_t virtual_address)
 {
 	uint32_t tab_entry = virtual_address >> 12;
 	uint32_t dir_entry = tab_entry  >> 10;
-	uint32_t* page_table = (uint32_t*) (_page_directory[dir_entry] & PDE_FRAME);
+	uint32_t* page_table = (uint32_t) (_page_directory[dir_entry] & PDE_FRAME);
 	uint32_t physical_address = page_table[tab_entry] & PTE_FRAME;
 	physical_address += (virtual_address & 0xFFF);
 	return physical_address;
