@@ -22,5 +22,5 @@ data_segment:
 GDT_end:
 
 gdt_descriptor: ;16 bit size | 32 bit starting address
-dw null_segment - GDT_end -1
-dd null_segment; + 0x7c00 I did this when I was doing bakchodi
+dw GDT_end - null_segment - 1
+dd null_segment ; base address of GDT
