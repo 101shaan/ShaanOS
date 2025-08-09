@@ -2,6 +2,7 @@
 #define KEYBOARD_H
 
 #include<stdbool.h>
+#include<stdint.h>
 
 extern bool _is_keyboard_interrupt;
 
