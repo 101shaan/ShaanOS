@@ -3,6 +3,7 @@
 
 
 #include<stdint.h>
+#include<stdbool.h>
 
 extern bool _is_timer_interrupt;
 
