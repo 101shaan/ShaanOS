@@ -160,7 +160,7 @@ static inline void pmmngr_toggle_block(uint32_t block_number)   //This must not 
 /** start and end are addresses**/
 static void pmmngr_toggle_range(uint32_t start,uint32_t end)    //Optimize the crap out of this later
 {
-	if (start % BLOCK_SIZE != 0){start -= (start%BLOCK_SIZE_B);}
+    if (start % BLOCK_SIZE != 0){start -= (start%BLOCK_SIZE);} 
     if (end % BLOCK_SIZE != 0){end -= (end%BLOCK_SIZE); end += BLOCK_SIZE;}
 	while((end - start) >= BLOCK_SIZE)
 	{
