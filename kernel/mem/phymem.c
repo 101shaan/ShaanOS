@@ -165,11 +165,10 @@ static void pmmngr_toggle_range(uint32_t start,uint32_t end)    //Optimize the c
 	while((end - start) >= BLOCK_SIZE)
 	{
 		
-		if((end - start) >= 32* BLOCK_SIZE)
+        if((end - start) >= 32* BLOCK_SIZE)
 		{
-			uint32_t* byte = (uint32_t*)(block_number(start) >> 3);
-			byte = (uint32_t*)((uint8_t*)byte +(uint32_t)physical_memory_bitmap);
-			*byte ^= 0xffffffff;
+            uint32_t dword_index = block_number(start) >> 5; // 32 blocks per dword
+            physical_memory_bitmap[dword_index] ^= 0xffffffff;
 			start += (BLOCK_SIZE<<5);
 			
 		}
