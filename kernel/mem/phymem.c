@@ -122,7 +122,7 @@ bool pmmngr_free_block(uint32_t* address)
 	uint32_t block = block_number((uint32_t)address);
 	uint32_t dword = block >> 5;
 	uint8_t offset = block % 32;
-	if(!extract_bit((uint32_t)(physical_memory_bitmap + dword),offset)) return 0;
+    if(!extract_bit(physical_memory_bitmap[dword],offset)) return 0;
 	pmmngr_toggle_block(block);
 	return 1;
 
