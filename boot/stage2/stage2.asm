@@ -25,6 +25,7 @@ GetMemoryMap:
   xor ebx,ebx
   mov es,bx
   mov edi,MemMap
+  mov dword[.count],0
 .loop:
   mov eax,0xe820 ;mov bx,0 is implicit
   mov ecx,24
@@ -34,10 +35,10 @@ GetMemoryMap:
   jc .error
   cmp eax,'PAMS'
   jne .error
+  inc dword[.count]
   cmp ebx,0
   je .done
   add edi,24
-  mov [.count],ebx
   jmp .loop
 
 .error:
@@ -46,13 +47,10 @@ GetMemoryMap:
   jmp .done
 .error_msg: db 'Cannot read memory map, Aborting....',0
 ;.success_msg: db 'Read complete!, Count = ',0
-.count: dd 0    ;Returns the number-1
+.count: dd 0    ;Number of entries read
 .done:
 ;  mov si,.success_msg
 ;  call print_si_16
-  mov bx,[.count]
-  inc bx
-  mov [.count],bx
 ;  call print_hex_bx
 
 
