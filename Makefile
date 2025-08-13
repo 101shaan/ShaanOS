@@ -1,15 +1,19 @@
-C_SOURCES = $(wildcard kernel/*/*.c)
+C_SOURCES_ALL = $(wildcard kernel/*/*.c)
+# Exclude deprecated duplicates implemented elsewhere
+C_SOURCES = $(filter-out kernel/driver/ATA.c kernel/driver/dadio.c,$(C_SOURCES_ALL))
 ASM_SOURCES = $(wildcard kernel/*/*.asm)
 C_OBJECTS = ${C_SOURCES:.c=.o}
 ASM_OBJECTS = ${ASM_SOURCES:.asm=.o}
 
 # Toolchain (override via environment if desired)
-CC ?= i686-elf-gcc
-LD ?= i686-elf-ld
-AS ?= nasm
-OBJCOPY ?= objcopy
+CC = i686-elf-gcc
+LD = i686-elf-ld
+AS = nasm
+OBJCOPY = objcopy
 
 CFLAGS ?= -Ikernel/include -ffreestanding -Wall -Werror -g
+# If building with a native compiler fallback, try force 32-bit codegen
+CFLAGS += -m32
 ASFLAGS ?= -f elf32
 
 .PHONY : all assemble run clean
