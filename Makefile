@@ -76,4 +76,4 @@ disk.img:
 	mkfs.vfat -F12 -S512 -s1 $@
 	
 clean :
-    rm -f $(OBJ_LIST) $(C_OBJECTS) $(ASM_OBJECTS) kernel/kernel.elf *.bin disk.img
+	rm -f $(OBJ_LIST) $(C_OBJECTS) $(ASM_OBJECTS) kernel/kernel.elf *.bin disk.img
