@@ -38,7 +38,26 @@ kernel.bin : kernel/kernel.elf
 	chmod -x $@
 
 #You can use the --print-map option to look at what the linker does
-kernel/kernel.elf : $(C_OBJECTS) $(ASM_OBJECTS)
+
+# Explicitly list expected objects to avoid stale/unknown files
+OBJ_LIST = \
+    kernel/driver/ata_driver.o \
+    kernel/driver/keyboard.o \
+    kernel/driver/timer.o \
+    kernel/driver/cursor.o \
+    kernel/hal/gdt.o \
+    kernel/hal/inthandling.o \
+    kernel/hal/interruptstubs.o \
+    kernel/hal/x86.o \
+    kernel/kernel/kernel.o \
+    kernel/kernel/kshell.o \
+    kernel/kernel/entry.o \
+    kernel/kernel/stack.o \
+    kernel/mem/phymem.o \
+    kernel/mem/virtmem.o \
+    kernel/driver/dadio_driver.o
+
+kernel/kernel.elf : $(OBJ_LIST)
 	$(LD) $^ -T kernel/linker.ld -e kmain -o $@ 
 	chmod -x $@
 
