@@ -123,13 +123,13 @@ void putc(char x)
 	}
 }
 
-void set_fg_color(int c)
+void set_fg_color(enum vga_color c)
 {
 	current_color &= 0xf0;
 	current_color |= (char)c;
 }
 
-void set_bg_color(int c)
+void set_bg_color(enum vga_color c)
 {
 	current_color &= 0x0f;
 	current_color |= ((char)c << 4);
