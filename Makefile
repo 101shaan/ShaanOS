@@ -24,7 +24,7 @@ run : assemble
 	qemu-system-i386 -drive format=raw,file=disk.img  -monitor stdio
 
 qemu-serial: assemble
-	qemu-system-i386 -serial stdio -display none -drive format=raw,file=disk.img
+	qemu-system-i386 -nographic -serial stdio -monitor none -drive format=raw,file=disk.img
 
 smoke: assemble
 	@echo "[smoke] (placeholder)"
