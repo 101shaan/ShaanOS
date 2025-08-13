@@ -3,6 +3,15 @@ ASM_SOURCES = $(wildcard kernel/*/*.asm)
 C_OBJECTS = ${C_SOURCES:.c=.o}
 ASM_OBJECTS = ${ASM_SOURCES:.asm=.o}
 
+# Toolchain (override via environment if desired)
+CC ?= i686-elf-gcc
+LD ?= i686-elf-ld
+AS ?= nasm
+OBJCOPY ?= objcopy
+
+CFLAGS ?= -Ikernel/include -ffreestanding -Wall -Werror -g
+ASFLAGS ?= -f elf32
+
 .PHONY : all assemble run clean
 
 all: run
@@ -21,18 +30,18 @@ assemble: disk.img kernel.bin stage1.bin stage2.bin
 
 
 kernel.bin : kernel/kernel.elf  
-	objcopy -O binary $^ $@
+	$(OBJCOPY) -O binary $^ $@
 	chmod -x $@
 
 #You can use the --print-map option to look at what the linker does
 kernel/kernel.elf : $(C_OBJECTS) $(ASM_OBJECTS)
-	i686-elf-ld  $^ -T kernel/linker.ld -e kmain -o $@ 
+	$(LD) $^ -T kernel/linker.ld -e kmain -o $@ 
 	chmod -x $@
 
 %.o : %.c
-	i686-elf-gcc -Ikernel/include -ffreestanding $< -c -o $@ -Wall -Werror -g 
+	$(CC) $(CFLAGS) $< -c -o $@ 
 %.o : %.asm
-	nasm $< -o $@ -f elf32
+	$(AS) $< -o $@ $(ASFLAGS)
 
 stage1.bin : boot/stage1/stage1.asm
 	nasm $^ -f bin -o $@
