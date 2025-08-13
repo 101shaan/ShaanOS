@@ -133,7 +133,8 @@ void free_page(uint32_t* table_entry)  //Makes any entry free
 	if(!entry_is_present(*table_entry)) return;
 	uint32_t physical_address = entry_physical (*table_entry);
 	pmmngr_free_block( (uint32_t*) physical_address);
-	entry_toggle_attrib (table_entry,PDE_PRESENT); //This seems like a bad idea?? Not flexible enough
+    // Clear the present bit explicitly
+    *table_entry &= ~PDE_PRESENT;
 }
 static bool alloc_page(uint32_t* table_entry)   //Given a page table/directory entry, 'fill' it automatically
 {
