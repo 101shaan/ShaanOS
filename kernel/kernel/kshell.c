@@ -5,6 +5,7 @@
 #include "keyboard.h"
 #include "hal_driver.h"
 #include "timer.h"
+#include "serial.h"
 
 #define MAX_COMMAND_SIZE 50
 #define MAX_TOKEN_SIZE 25 
@@ -36,6 +37,7 @@ static char _shell_name[MAX_NAME_SIZE] = "shell";
 
 void kshell()
 {
+    serial_write("[kshell] ready\n");
 	command_fresh();
 	//This loop gets the commands from us
 	while(1)
