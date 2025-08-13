@@ -16,12 +16,18 @@ CFLAGS ?= -Ikernel/include -ffreestanding -Wall -Werror -g
 CFLAGS += -m32
 ASFLAGS ?= -f elf32
 
-.PHONY : all assemble run clean
+.PHONY : all assemble run clean qemu-serial smoke
 
 all: run
 
 run : assemble
 	qemu-system-i386 -drive format=raw,file=disk.img  -monitor stdio
+
+qemu-serial: assemble
+	qemu-system-i386 -serial stdio -display none -drive format=raw,file=disk.img
+
+smoke: assemble
+	@echo "[smoke] (placeholder)"
 
 debug: assemble
 	qemu-system-i386 -s -hda disk.img &
@@ -55,7 +61,8 @@ OBJ_LIST = \
     kernel/kernel/stack.o \
     kernel/mem/phymem.o \
     kernel/mem/virtmem.o \
-    kernel/driver/dadio_driver.o
+    kernel/driver/dadio_driver.o \
+    kernel/driver/serial.o
 
 kernel/kernel.elf : $(OBJ_LIST)
 	$(LD) $^ -T kernel/linker.ld -e kmain -o $@ 

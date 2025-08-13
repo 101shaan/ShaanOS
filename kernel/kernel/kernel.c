@@ -8,6 +8,8 @@
 #include "keyboard.h"
 #include "inthandling.h"
 #include "FAT12.h"
+#include "serial.h"
+#include "panic.h"
 
 extern void kshell();
 extern void refresh_stack();
@@ -15,10 +17,13 @@ uint8_t array[512];
 void initialize_all(uint32_t mmapsize);
 void kmain(uint32_t mmapsize,uint32_t data_sect,uint32_t root_sect,uint32_t fat_sect)
 {
+    serial_init();
+    serial_write("[boot] serial online\n");
 	gdt_init();
 	pmmngr_init(mmapsize); //Uses 0x1000... Don't remove identity map before that
 	vmmngr_init();  //Sets recursive map, remaps stack and vidmem
 	clear();
+    serial_write("[boot] memory online\n");
 
 	refresh_stack(); 
 	remove_identity_map();
@@ -26,6 +31,7 @@ void kmain(uint32_t mmapsize,uint32_t data_sect,uint32_t root_sect,uint32_t fat_
 	interrupt_init();
 	kbc_init();
 	set_timer(0xffff);
+    serial_write("[boot] interrupts online\n");
 
 	kshell();
 
