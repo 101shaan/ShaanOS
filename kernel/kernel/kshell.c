@@ -320,9 +320,9 @@ static void command_snake()
     int foodx = 20, foody = 10;
 
     for(int i=0;i<length;i++){ sx[i] = headx - i; sy[i] = heady; }
-    // Do not change global timer; step the snake every N ticks instead
+    // Do not change global timer; step the snake only every N ticks
     int tick_accum = 0;
-    int base_ticks = 4;
+    int base_ticks = 3; // slightly faster
     int step_ticks = base_ticks; // higher = slower
     monitor_puts("Press SPACE to start. Controls: WASD or arrows. Q to quit, R to restart.");
     while(1){ char c = get_monitor_char(); if(c==' ') break; if(c=='q'){ command_fresh(); return; } }
@@ -399,8 +399,9 @@ static void command_snake()
 				}
 			}
             vga_pointer[2*foodx + 160*foody] = '*';
-            vga_pointer[2*sx[0] + 160*sy[0]] = 'O';
-            if(length>1) vga_pointer[2*sx[1] + 160*sy[1]] = 'o';
+            for(int draw_i=0; draw_i<length; draw_i++){
+                vga_pointer[2*sx[draw_i] + 160*sy[draw_i]] = (draw_i==0 ? 'O' : 'o');
+            }
 			next_tick: ;
         }
     }
