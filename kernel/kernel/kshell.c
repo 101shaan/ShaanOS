@@ -322,8 +322,8 @@ static void command_snake()
     for(int i=0;i<length;i++){ sx[i] = headx - i; sy[i] = heady; }
     // Do not change global timer; step the snake every N ticks instead
     int tick_accum = 0;
-	int base_ticks = 6;
-	int step_ticks = base_ticks; // higher = slower
+    int base_ticks = 4;
+    int step_ticks = base_ticks; // higher = slower
     monitor_puts("Press SPACE to start. Controls: WASD or arrows. Q to quit, R to restart.");
     while(1){ char c = get_monitor_char(); if(c==' ') break; if(c=='q'){ command_fresh(); return; } }
     clear(); set_cursor(0);
@@ -381,15 +381,15 @@ static void command_snake()
             int ate = (newx==foodx && newy==foody);
             if(!ate){
                 int tx = sx[length-1], ty = sy[length-1];
-                vga_pointer[2*tx + 160*ty] = 0;
+                vga_pointer[2*tx + 160*ty] = ' ';
             }
             for(int i=length-1;i>0;i--){ sx[i]=sx[i-1]; sy[i]=sy[i-1]; }
             sx[0]=newx; sy[0]=newy; headx=newx; heady=newy;
 			if(ate){
 				if(length<max_len) length++;
-				// increase speed a bit as snake grows
-				step_ticks = base_ticks - (length/5);
-				if(step_ticks < 3) step_ticks = 3;
+                // increase speed a bit as snake grows
+                step_ticks = base_ticks - (length/6);
+                if(step_ticks < 2) step_ticks = 2;
 				// place new food not on snake (naive scan)
 				for(int tries=0; tries<screen_w*screen_h; tries++){
 					foodx = (foodx + 7) % screen_w; foody = (foody + 3) % screen_h;
