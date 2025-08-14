@@ -34,6 +34,8 @@ static void command_clear();
 static void command_echo();
 static void command_uptime();
 static void command_mem();
+// Small helpers
+static uint32_t parse_uint(const char* s);
 
 //Global variables 
 static char _cmd_buffer[MAX_COMMAND_SIZE];
@@ -245,10 +247,28 @@ static void command_fresh()
 static void command_timer()
 {
 	extract_token(1);
-	if(string_compare(_tkn_buffer,"fast")) set_timer(0xffff>>2);
-	if(string_compare(_tkn_buffer,"medium")) set_timer(0xffff>>1);
-	if(string_compare(_tkn_buffer,"slow")) set_timer(0xffff);
-	if(string_compare(_tkn_buffer,"help")) monitor_puts("\tUsage: timer fast/medium/slow");
+	if(string_compare(_tkn_buffer,"help")) {
+		monitor_puts("\tUsage: timer fast|medium|slow|hz <n>\n");
+		monitor_puts("\t- fast/medium/slow: preset PIT rates\n");
+		monitor_puts("\t- hz n: set PIT to n ticks per second (1..65535 effective)\n");
+		return;
+	}
+	if(string_compare(_tkn_buffer,"fast")) { set_timer(0xffff>>2); monitor_puts("\nTimer: fast"); return; }
+	if(string_compare(_tkn_buffer,"medium")) { set_timer(0xffff>>1); monitor_puts("\nTimer: medium"); return; }
+	if(string_compare(_tkn_buffer,"slow")) { set_timer(0xffff); monitor_puts("\nTimer: slow"); return; }
+	if(string_compare(_tkn_buffer,"hz")) {
+		extract_token(2);
+		uint32_t hz = parse_uint(_tkn_buffer);
+		if(hz == 0) { monitor_puts("\nTimer: invalid hz"); return; }
+		uint32_t divisor = 1193182u / hz;
+		if(divisor == 0) divisor = 1;
+		if(divisor > 0xFFFFu) divisor = 0xFFFFu;
+		set_timer((uint16_t)divisor);
+		monitor_puts("\nTimer set (hz): ");
+		printhex(hz);
+		return;
+	}
+	monitor_puts("\nTimer: unknown setting. Try 'timer help'.");
 }
 
 static void command_picture()
@@ -444,6 +464,18 @@ static void command_mem()
 	uint32_t blocks = pmmngr_free_block_count();
 	monitor_puts("\nFree blocks (4KiB): ");
 	printhex(blocks);
+}
+
+static uint32_t parse_uint(const char* s)
+{
+	uint32_t v = 0;
+	int i = 0;
+	while (s && s[i]) {
+		char c = s[i++];
+		if (c < '0' || c > '9') break;
+		v = v * 10u + (uint32_t)(c - '0');
+	}
+	return v;
 }
 
 static bool string_compare(char* str1, char* str2)
