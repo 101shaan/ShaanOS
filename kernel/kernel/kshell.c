@@ -304,7 +304,7 @@ static void command_snake()
 {
     extract_token(1);
     if(string_compare(_tkn_buffer,"help"))
-        {monitor_puts("\nSnake: w/a/s/d to move, q to quit. Eat * to grow."); return;}
+        {monitor_puts("\nSnake: SPACE to start. Controls: WASD or arrows. Q to quit, R to restart. Eat * to grow."); return;}
     clear();
     set_cursor(0);
     char* vga_pointer = (char*) __VGA_text_memory;
@@ -320,12 +320,14 @@ static void command_snake()
     int foodx = 20, foody = 10;
 
     for(int i=0;i<length;i++){ sx[i] = headx - i; sy[i] = heady; }
-    vga_pointer[2*foodx + 160*foody] = '*';
-    for(int i=0;i<length;i++) vga_pointer[2*sx[i] + 160*sy[i]] = (i==0?'O':'o');
-
     // Do not change global timer; step the snake every N ticks instead
     int tick_accum = 0;
     const int step_ticks = 12; // higher = slower
+    monitor_puts("Press SPACE to start. Controls: WASD or arrows. Q to quit, R to restart.");
+    while(1){ char c = get_monitor_char(); if(c==' ') break; if(c=='q'){ command_fresh(); return; } }
+    clear(); set_cursor(0);
+    vga_pointer[2*foodx + 160*foody] = '*';
+    for(int i=0;i<length;i++) vga_pointer[2*sx[i] + 160*sy[i]] = (i==0?'O':'o');
     while(1)
     {
         kernel_wait();
@@ -334,10 +336,11 @@ static void command_snake()
             _is_keyboard_interrupt = 0;
             char c = get_latest_char();
             if(c=='q') break;
-            if(c=='w' && diry!=1){ dirx=0; diry=-1; }
-            else if(c=='s' && diry!=-1){ dirx=0; diry=1; }
-            else if(c=='a' && dirx!=1){ dirx=-1; diry=0; }
-            else if(c=='d' && dirx!=-1){ dirx=1; diry=0; }
+            if(c=='r') { command_fresh(); return; }
+            if((c=='w' || c==19) && diry!=1){ dirx=0; diry=-1; }
+            else if((c=='s' || c==20) && diry!=-1){ dirx=0; diry=1; }
+            else if((c=='a' || c==17) && dirx!=1){ dirx=-1; diry=0; }
+            else if((c=='d' || c==18) && dirx!=-1){ dirx=1; diry=0; }
         }
         if(_is_timer_interrupt)
         {
@@ -346,8 +349,8 @@ static void command_snake()
             tick_accum = 0;
             int newx = headx + dirx;
             int newy = heady + diry;
-            if(newx<0||newx>=screen_w||newy<0||newy>=screen_h){ monitor_puts("\nGame over (wall). Press x to exit"); while(get_monitor_char()!='x'); break; }
-            for(int i=0;i<length;i++){ if(sx[i]==newx && sy[i]==newy){ monitor_puts("\nGame over (self). Press x to exit"); while(get_monitor_char()!='x'); goto end_snake; } }
+            if(newx<0||newx>=screen_w||newy<0||newy>=screen_h){ monitor_puts("\nGame over (wall). Press r to restart or q to quit"); while(1){ char c=get_monitor_char(); if(c=='q') break; if(c=='r'){ command_fresh(); return; } } break; }
+            for(int i=0;i<length;i++){ if(sx[i]==newx && sy[i]==newy){ monitor_puts("\nGame over (self). Press r to restart or q to quit"); while(1){ char c=get_monitor_char(); if(c=='q') break; if(c=='r'){ command_fresh(); return; } } goto end_snake; } }
             int ate = (newx==foodx && newy==foody);
             if(!ate){
                 int tx = sx[length-1], ty = sy[length-1];
