@@ -322,7 +322,8 @@ static void command_snake()
     for(int i=0;i<length;i++){ sx[i] = headx - i; sy[i] = heady; }
     // Do not change global timer; step the snake every N ticks instead
     int tick_accum = 0;
-    const int step_ticks = 12; // higher = slower
+	int base_ticks = 6;
+	int step_ticks = base_ticks; // higher = slower
     monitor_puts("Press SPACE to start. Controls: WASD or arrows. Q to quit, R to restart.");
     while(1){ char c = get_monitor_char(); if(c==' ') break; if(c=='q'){ command_fresh(); return; } }
     clear(); set_cursor(0);
@@ -347,10 +348,36 @@ static void command_snake()
             _is_timer_interrupt = 0;
             if (++tick_accum < step_ticks) continue;
             tick_accum = 0;
-            int newx = headx + dirx;
+			int newx = headx + dirx;
             int newy = heady + diry;
-            if(newx<0||newx>=screen_w||newy<0||newy>=screen_h){ monitor_puts("\nGame over (wall). Press r to restart or q to quit"); while(1){ char c=get_monitor_char(); if(c=='q') break; if(c=='r'){ command_fresh(); return; } } break; }
-            for(int i=0;i<length;i++){ if(sx[i]==newx && sy[i]==newy){ monitor_puts("\nGame over (self). Press r to restart or q to quit"); while(1){ char c=get_monitor_char(); if(c=='q') break; if(c=='r'){ command_fresh(); return; } } goto end_snake; } }
+			if(newx<0||newx>=screen_w||newy<0||newy>=screen_h){
+				monitor_puts("\nGame over (wall). Press r to restart or q to quit");
+				while(1){ char c=get_monitor_char(); if(c=='q') goto end_snake; if(c=='r'){
+					clear(); set_cursor(0);
+					length=3; dirx=1; diry=0; headx=40; heady=12; foodx=20; foody=10;
+					for(int i=0;i<length;i++){ sx[i]=headx-i; sy[i]=heady; }
+					tick_accum = 0; step_ticks = base_ticks;
+					vga_pointer[2*foodx + 160*foody] = '*';
+					for(int i=0;i<length;i++) vga_pointer[2*sx[i] + 160*sy[i]] = (i==0?'O':'o');
+					break; }
+				}
+				continue;
+			}
+			for(int i=0;i<length;i++){
+				if(sx[i]==newx && sy[i]==newy){
+					monitor_puts("\nGame over (self). Press r to restart or q to quit");
+					while(1){ char c=get_monitor_char(); if(c=='q') goto end_snake; if(c=='r'){
+						clear(); set_cursor(0);
+						length=3; dirx=1; diry=0; headx=40; heady=12; foodx=20; foody=10;
+						for(int j=0;j<length;j++){ sx[j]=headx-j; sy[j]=heady; }
+						tick_accum = 0; step_ticks = base_ticks;
+						vga_pointer[2*foodx + 160*foody] = '*';
+						for(int j=0;j<length;j++) vga_pointer[2*sx[j] + 160*sy[j]] = (j==0?'O':'o');
+						break; }
+					}
+					goto next_tick;
+				}
+			}
             int ate = (newx==foodx && newy==foody);
             if(!ate){
                 int tx = sx[length-1], ty = sy[length-1];
@@ -358,12 +385,23 @@ static void command_snake()
             }
             for(int i=length-1;i>0;i--){ sx[i]=sx[i-1]; sy[i]=sy[i-1]; }
             sx[0]=newx; sy[0]=newy; headx=newx; heady=newy;
-            if(ate){ if(length<max_len) length++;
-                foodx = (foodx + 7) % screen_w; foody = (foody + 3) % screen_h;
-            }
+			if(ate){
+				if(length<max_len) length++;
+				// increase speed a bit as snake grows
+				step_ticks = base_ticks - (length/5);
+				if(step_ticks < 3) step_ticks = 3;
+				// place new food not on snake (naive scan)
+				for(int tries=0; tries<screen_w*screen_h; tries++){
+					foodx = (foodx + 7) % screen_w; foody = (foody + 3) % screen_h;
+					int on_body = 0;
+					for(int k=0;k<length;k++){ if(sx[k]==foodx && sy[k]==foody){ on_body = 1; break; } }
+					if(!on_body) break;
+				}
+			}
             vga_pointer[2*foodx + 160*foody] = '*';
             vga_pointer[2*sx[0] + 160*sy[0]] = 'O';
             if(length>1) vga_pointer[2*sx[1] + 160*sy[1]] = 'o';
+			next_tick: ;
         }
     }
 end_snake:
