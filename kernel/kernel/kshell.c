@@ -6,6 +6,7 @@
 #include "hal_driver.h"
 #include "timer.h"
 #include "serial.h"
+#include "phymem.h"
 
 #define MAX_COMMAND_SIZE 50
 #define MAX_TOKEN_SIZE 25 
@@ -19,7 +20,7 @@ static void parse_command();
 static void flush_token_buffer();
 static void flush_command_buffer();
 static bool string_compare(char* str1, char* str2);
-static void string_copy(char* strd,char* strs);
+static void string_copy(char* strd,char* strs,int max_len);
 
 //Shell functions
 static void command_help();
@@ -29,6 +30,10 @@ static void command_picture();
 static void command_name();
 static void command_ball();
 static void command_quote();
+static void command_clear();
+static void command_echo();
+static void command_uptime();
+static void command_mem();
 
 //Global variables 
 static char _cmd_buffer[MAX_COMMAND_SIZE];
@@ -118,6 +123,10 @@ static void parse_command()
 	if(string_compare(_tkn_buffer,"ball")){command_ball();return;}
 	if(string_compare(_tkn_buffer,"quote")){command_quote();return;}
 	if(string_compare(_tkn_buffer,"name")){command_name();return;}
+	if(string_compare(_tkn_buffer,"clear")){command_clear();return;}
+	if(string_compare(_tkn_buffer,"echo")){command_echo();return;}
+	if(string_compare(_tkn_buffer,"uptime")){command_uptime();return;}
+	if(string_compare(_tkn_buffer,"mem")){command_mem();return;}
 
 	monitor_puts(" - Command not found: ");
 	monitor_puts(_tkn_buffer);
@@ -127,35 +136,33 @@ static void extract_token(int token_no)  //Takes token number n from command and
 {
 	flush_token_buffer();
 	char* pointer = _cmd_buffer;
-	while( *pointer == ' ')	pointer++;
+	while (*pointer == ' ') pointer++;
 
-	for (int i=0;i<token_no;i++)
+	for (int i = 0; i < token_no; i++)
 	{
-		while( *pointer != ' ')	{if(*pointer == 0 ) return; pointer++;}
-		while( *pointer == ' ')	pointer++;
+		while (*pointer && *pointer != ' ') pointer++;
+		while (*pointer == ' ') pointer++;
 	}
 
-	for (int i =0;i<MAX_TOKEN_SIZE;i++)
+	int i = 0;
+	while (*pointer && *pointer != ' ' && i < (MAX_TOKEN_SIZE - 1))
 	{
-		if(*pointer == 0 || *pointer ==' ') return;
-		_tkn_buffer[i] = *(pointer++);
+		_tkn_buffer[i++] = *pointer++;
 	}
-
+	_tkn_buffer[i] = 0;
 }
 
 static void flush_command_buffer()
 {
-	for(int i=0;i<MAX_COMMAND_SIZE;i++)
-	{ 	
-		if (_cmd_buffer[i] == 0) break;
+	for (int i = 0; i < MAX_COMMAND_SIZE; i++)
+	{
 		_cmd_buffer[i] = 0;
 	}
 }
 static void flush_token_buffer()
 {
-	for(int i=0;i<MAX_TOKEN_SIZE;i++)
+	for (int i = 0; i < MAX_TOKEN_SIZE; i++)
 	{
-		if (_tkn_buffer[i] == 0) break;
 		_tkn_buffer[i] = 0;
 	}
 }
@@ -169,6 +176,10 @@ static void command_help()
 	monitor_puts(" picture");
 	monitor_puts(" ball");
 	monitor_puts(" name\n");
+	monitor_puts(" clear");
+	monitor_puts(" echo");
+	monitor_puts(" uptime");
+	monitor_puts(" mem\n");
 }
 
 static void command_fresh()
@@ -266,10 +277,10 @@ static void command_name()
 	if(string_compare(_tkn_buffer,"help"))
 		{monitor_puts("\tUsage: name string"); return;}
 	if(string_compare(_tkn_buffer,"masih"))
-		string_copy(_tkn_buffer,"asshole");
+		string_copy(_tkn_buffer,"asshole", MAX_TOKEN_SIZE);
 			
 	for(int i=0;i<MAX_NAME_SIZE;i++) _shell_name[i] = 0; //Flush
-	string_copy(_shell_name,_tkn_buffer);
+	string_copy(_shell_name,_tkn_buffer, MAX_NAME_SIZE);
 }
 
 #define BALL 'o'
@@ -387,12 +398,52 @@ static void command_quote()
 			monitor_puts("\tTrust that good will happen");
 	}
 }
-static void string_copy(char* strd,char* strs)
+static void string_copy(char* strd,char* strs,int max_len)
 {
-	for(int i=0;strs[i];i++)
+	int i = 0;
+	if (max_len <= 0) return;
+	while (strs[i] && i < (max_len - 1))
 	{
-		strd[i]=strs[i];
+		strd[i] = strs[i];
+		i++;
 	}
+	strd[i] = 0;
+}
+
+static void command_clear()
+{
+	clear();
+}
+
+static void command_echo()
+{
+	extract_token(1);
+	if(string_compare(_tkn_buffer,"help"))
+		{monitor_puts("\tUsage: echo text"); return;}
+	monitor_puts("\n");
+	// Print the rest of the command buffer after first token
+	char* pointer = _cmd_buffer;
+	// skip leading spaces
+	while(*pointer == ' ') pointer++;
+	// skip first token
+	while(*pointer && *pointer != ' ') pointer++;
+	while(*pointer == ' ') pointer++;
+	while(*pointer) { putc(*pointer++); }
+}
+
+static void command_uptime()
+{
+	uint32_t ticks = get_tick_count();
+	// PIT default here is arbitrary; we print raw ticks for now
+	monitor_puts("\nTicks: ");
+	printhex(ticks);
+}
+
+static void command_mem()
+{
+	uint32_t blocks = pmmngr_free_block_count();
+	monitor_puts("\nFree blocks (4KiB): ");
+	printhex(blocks);
 }
 
 static bool string_compare(char* str1, char* str2)
