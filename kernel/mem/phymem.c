@@ -28,6 +28,7 @@ static inline void pmmngr_toggle_block(uint32_t block_number);
 static inline uint32_t block_number(uint32_t address);
 static uint8_t get_lowest_bit(uint32_t hexinp);
 static uint8_t extract_bit(uint32_t hexinp,uint8_t bitnumber); 
+static inline uint8_t count_set_bits(uint32_t value);
 
 
 // Data structues and user defined data types:
@@ -129,6 +130,17 @@ bool pmmngr_free_block(uint32_t* address)
 //	return 0;
 
 }
+
+uint32_t pmmngr_free_block_count()
+{
+    uint32_t free_blocks = 0;
+    for (uint32_t i = 0; i < 0x8000; i++)
+    {
+        uint8_t ones = count_set_bits(physical_memory_bitmap[i]);
+        free_blocks += (uint32_t)(32 - ones);
+    }
+    return free_blocks;
+}
 // Helper function implementations:
 static uint8_t get_lowest_bit(uint32_t hexinp)
 {
@@ -143,6 +155,16 @@ static uint8_t get_lowest_bit(uint32_t hexinp)
 static inline uint8_t extract_bit(uint32_t hexinp,uint8_t bitnumber)  //bitnumber < 32
 {
 	return (hexinp >> bitnumber) & 1;
+}
+static inline uint8_t count_set_bits(uint32_t value)
+{
+    uint8_t count = 0;
+    while (value)
+    {
+        value &= (value - 1);
+        count++;
+    }
+    return count;
 }
 static inline uint32_t block_number(uint32_t address)
 {
