@@ -28,7 +28,7 @@ static void command_fresh();
 static void command_timer();
 static void command_picture();
 static void command_name();
-static void command_ball();
+static void command_snake();
 static void command_quote();
 static void command_echo();
 static void command_uptime();
@@ -120,8 +120,8 @@ static void parse_command()
 	if(string_compare(_tkn_buffer,"help")) {command_help();return;}
 	if(string_compare(_tkn_buffer,"fresh")){command_fresh();return;}
 	if(string_compare(_tkn_buffer,"timer")){command_timer();return;}
-	if(string_compare(_tkn_buffer,"picture")){command_picture();return;}
-	if(string_compare(_tkn_buffer,"ball")){command_ball();return;}
+    if(string_compare(_tkn_buffer,"picture")){command_picture();return;}
+    if(string_compare(_tkn_buffer,"snake")){command_snake();return;}
 	if(string_compare(_tkn_buffer,"quote")){command_quote();return;}
     if(string_compare(_tkn_buffer,"name")){command_name();return;}
 	if(string_compare(_tkn_buffer,"echo")){command_echo();return;}
@@ -173,8 +173,8 @@ static void command_help()
 	monitor_puts("\nhelp");
 	monitor_puts(" fresh");
 	monitor_puts(" timer");
-	monitor_puts(" picture");
-	monitor_puts(" ball");
+    monitor_puts(" picture");
+    monitor_puts(" snake");
     monitor_puts(" name\n");
 	monitor_puts(" echo");
 	monitor_puts(" uptime");
@@ -300,101 +300,67 @@ static void command_name()
 	string_copy(_shell_name,_tkn_buffer, MAX_NAME_SIZE);
 }
 
-#define BALL 'o'
-#define STAR '*'
-static void command_ball()
+static void command_snake()
 {
-	extract_token(1);
-	if(string_compare(_tkn_buffer,"help"))
-		{monitor_puts("\nPlay with balls. Kick out the other ball to win! (w/a/s/d) (i/j/k/l)"); return;}
-	clear();
-	set_cursor(25*80);
-	char* vga_pointer = (char*) __VGA_text_memory;
-	int ball1_x = 0; int ball1_y = 0;
-	int ball2_x = 79; int ball2_y = 24;
-	int y1_dir=0,x1_dir=0;
-	int y2_dir=0,x2_dir=0;
+    extract_token(1);
+    if(string_compare(_tkn_buffer,"help"))
+        {monitor_puts("\nSnake: w/a/s/d to move, q to quit. Eat * to grow."); return;}
+    clear();
+    set_cursor(0);
+    char* vga_pointer = (char*) __VGA_text_memory;
 
-	while(1)
-	{
-		kernel_wait();
-		if(_is_keyboard_interrupt)
-		{
-			_is_keyboard_interrupt = 0;
-			char input = get_latest_char();
-			switch(input)
-			{
-				case 'w':   //w pressed
-					y1_dir += -1;
-					if(y1_dir<-1)y1_dir=-1;
-					break;
-				case 's':   //s pressed
-					y1_dir += 1;
-					if(y1_dir>1)y1_dir=1;
-					break;
-				case 'a':   //a pressed
-					x1_dir += -1;
-					if(x1_dir<-1)x1_dir=-1;
-					break;
-				case 'd':   //d pressed
-					x1_dir += 1;
-					if(x1_dir>1)x1_dir=1;
-					break;
+    const int screen_w = 80;
+    const int screen_h = 25;
+    const int max_len = screen_w * screen_h - 1;
+    static int sx[2000];
+    static int sy[2000];
+    int length = 3;
+    int dirx = 1, diry = 0;
+    int headx = 40, heady = 12;
+    int foodx = 20, foody = 10;
 
+    for(int i=0;i<length;i++){ sx[i] = headx - i; sy[i] = heady; }
+    vga_pointer[2*foodx + 160*foody] = '*';
+    for(int i=0;i<length;i++) vga_pointer[2*sx[i] + 160*sy[i]] = (i==0?'O':'o');
 
-				case 'i':   //w pressed
-					y2_dir += -1;
-					if(y2_dir<-1)y2_dir=-1;
-					break;
-				case 'k':   //s pressed
-					y2_dir += 1;
-					if(y2_dir>1)y2_dir=1;
-					break;
-				case 'j':   //a pressed
-					x2_dir += -1;
-					if(x2_dir<-1)x2_dir=-1;
-					break;
-				case 'l':   //d pressed
-					x2_dir += 1;
-					if(x2_dir>1)x2_dir=1;
-					break;
-			}
-		}
-		if(_is_timer_interrupt)
-		{
-			_is_timer_interrupt = 0;
-			vga_pointer[2*ball1_x+(160*ball1_y)] = 0;
-			vga_pointer[2*ball2_x+(160*ball2_y)] = 0;
-			ball1_x+=x1_dir;ball1_y+=y1_dir;
-			if (ball1_x == ball2_x && ball1_y == ball2_y)
-			{
-				int temp = x1_dir;x1_dir=x2_dir;x2_dir=temp;
-				temp = y1_dir;y1_dir=y2_dir;y2_dir=temp;
-			}
-			ball2_x+=x2_dir;ball2_y+=y2_dir; //Move one ball and then the next
-			if (ball1_x == 80 || ball1_x <0 || ball1_y <0 || ball1_y == 25)
-			{
-				set_cursor(0);
-			       	monitor_puts("P1 loses!");
-				monitor_puts("\nPress x to exit");
-				while(get_monitor_char()!='x');
-				break;
-			}
-
-			if (ball2_x == 80 || ball2_x <0 || ball2_y <0 || ball2_y == 25)
-			{
-				set_cursor(0);
-			       	monitor_puts("P2 loses!");
-				monitor_puts("\nPress x to exit");
-				while(get_monitor_char()!='x');
-				break;
-			}
-	
-			vga_pointer[2*ball1_x+(160*ball1_y)] = BALL;
-			vga_pointer[2*ball2_x+(160*ball2_y)] = STAR;
-		}
-	}
-	command_fresh();
+    set_timer(0xffff>>2);
+    while(1)
+    {
+        kernel_wait();
+        if(_is_keyboard_interrupt)
+        {
+            _is_keyboard_interrupt = 0;
+            char c = get_latest_char();
+            if(c=='q') break;
+            if(c=='w' && diry!=1){ dirx=0; diry=-1; }
+            else if(c=='s' && diry!=-1){ dirx=0; diry=1; }
+            else if(c=='a' && dirx!=1){ dirx=-1; diry=0; }
+            else if(c=='d' && dirx!=-1){ dirx=1; diry=0; }
+        }
+        if(_is_timer_interrupt)
+        {
+            _is_timer_interrupt = 0;
+            int newx = headx + dirx;
+            int newy = heady + diry;
+            if(newx<0||newx>=screen_w||newy<0||newy>=screen_h){ monitor_puts("\nGame over (wall). Press x to exit"); while(get_monitor_char()!='x'); break; }
+            for(int i=0;i<length;i++){ if(sx[i]==newx && sy[i]==newy){ monitor_puts("\nGame over (self). Press x to exit"); while(get_monitor_char()!='x'); goto end_snake; } }
+            int ate = (newx==foodx && newy==foody);
+            if(!ate){
+                int tx = sx[length-1], ty = sy[length-1];
+                vga_pointer[2*tx + 160*ty] = 0;
+            }
+            for(int i=length-1;i>0;i--){ sx[i]=sx[i-1]; sy[i]=sy[i-1]; }
+            sx[0]=newx; sy[0]=newy; headx=newx; heady=newy;
+            if(ate){ if(length<max_len) length++;
+                foodx = (foodx + 7) % screen_w; foody = (foody + 3) % screen_h;
+            }
+            vga_pointer[2*foodx + 160*foody] = '*';
+            vga_pointer[2*sx[0] + 160*sy[0]] = 'O';
+            if(length>1) vga_pointer[2*sx[1] + 160*sy[1]] = 'o';
+        }
+    }
+end_snake:
+    command_fresh();
 }
 
 static void command_quote()
