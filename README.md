@@ -19,6 +19,7 @@ A custom x86 operating system kernel written in C and Assembly, featuring memory
   - FAT12 support for reading files from disk images.
 - **Kernel Shell:**
   - Simple command-line shell (`kshell.c`) for user interaction and testing.
+  - Commands: `help`, `fresh`, `timer`, `echo`, `uptime`, `mem`, `name`
 
 ## Directory Structure
 
@@ -57,6 +58,10 @@ OS/
    ```
 
 ### Debugging
+
+## Roadmap
+
+See `ROADMAP.md` for planned features, priorities, and milestones.
 
 - Start QEMU in debug mode and connect with GDB:
   ```sh

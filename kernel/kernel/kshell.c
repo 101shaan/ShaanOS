@@ -30,7 +30,6 @@ static void command_picture();
 static void command_name();
 static void command_ball();
 static void command_quote();
-static void command_clear();
 static void command_echo();
 static void command_uptime();
 static void command_mem();
@@ -124,8 +123,7 @@ static void parse_command()
 	if(string_compare(_tkn_buffer,"picture")){command_picture();return;}
 	if(string_compare(_tkn_buffer,"ball")){command_ball();return;}
 	if(string_compare(_tkn_buffer,"quote")){command_quote();return;}
-	if(string_compare(_tkn_buffer,"name")){command_name();return;}
-	if(string_compare(_tkn_buffer,"clear")){command_clear();return;}
+    if(string_compare(_tkn_buffer,"name")){command_name();return;}
 	if(string_compare(_tkn_buffer,"echo")){command_echo();return;}
 	if(string_compare(_tkn_buffer,"uptime")){command_uptime();return;}
 	if(string_compare(_tkn_buffer,"mem")){command_mem();return;}
@@ -177,8 +175,7 @@ static void command_help()
 	monitor_puts(" timer");
 	monitor_puts(" picture");
 	monitor_puts(" ball");
-	monitor_puts(" name\n");
-	monitor_puts(" clear");
+    monitor_puts(" name\n");
 	monitor_puts(" echo");
 	monitor_puts(" uptime");
 	monitor_puts(" mem\n");
@@ -430,10 +427,7 @@ static void string_copy(char* strd,char* strs,int max_len)
 	strd[i] = 0;
 }
 
-static void command_clear()
-{
-	clear();
-}
+
 
 static void command_echo()
 {
