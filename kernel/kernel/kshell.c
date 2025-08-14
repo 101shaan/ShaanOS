@@ -323,7 +323,9 @@ static void command_snake()
     vga_pointer[2*foodx + 160*foody] = '*';
     for(int i=0;i<length;i++) vga_pointer[2*sx[i] + 160*sy[i]] = (i==0?'O':'o');
 
-    set_timer(0xffff>>2);
+    // Do not change global timer; step the snake every N ticks instead
+    int tick_accum = 0;
+    const int step_ticks = 12; // higher = slower
     while(1)
     {
         kernel_wait();
@@ -340,6 +342,8 @@ static void command_snake()
         if(_is_timer_interrupt)
         {
             _is_timer_interrupt = 0;
+            if (++tick_accum < step_ticks) continue;
+            tick_accum = 0;
             int newx = headx + dirx;
             int newy = heady + diry;
             if(newx<0||newx>=screen_w||newy<0||newy>=screen_h){ monitor_puts("\nGame over (wall). Press x to exit"); while(get_monitor_char()!='x'); break; }
