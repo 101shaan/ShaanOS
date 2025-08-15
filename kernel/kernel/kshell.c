@@ -235,7 +235,7 @@ static void command_fresh()
 	set_bg_color(color[0]);
 	for(int i=0;i<80;i++) putc(' ');
 	set_cursor(20);
-	monitor_puts("Shaan's OS KERNEL SHELL 0.01 (help displays commands)");
+	monitor_puts("ShaanOS KERNEL SHELL 0.02 (help displays commands)");
 
 	set_fg_color(color[0]);
 	set_bg_color(color[1]);
@@ -375,34 +375,43 @@ static void command_snake()
 						for(int j=0;j<length;j++) vga_pointer[2*sx[j] + 160*sy[j]] = (j==0?'O':'o');
 						break; }
 					}
-					goto next_tick;
+					continue; // Skip to next timer interrupt
 				}
 			}
             int ate = (newx==foodx && newy==foody);
+            // Remember old tail position BEFORE shifting
+            int old_tail_x = sx[length-1];
+            int old_tail_y = sy[length-1];
             if(!ate){
-                int tx = sx[length-1], ty = sy[length-1];
-                vga_pointer[2*tx + 160*ty] = ' ';
+                vga_pointer[2*old_tail_x + 160*old_tail_y] = ' ';
+            } else {
+                // Clear the old food position when eaten
+                vga_pointer[2*foodx + 160*foody] = ' ';
             }
             for(int i=length-1;i>0;i--){ sx[i]=sx[i-1]; sy[i]=sy[i-1]; }
             sx[0]=newx; sy[0]=newy; headx=newx; heady=newy;
-			if(ate){
-				if(length<max_len) length++;
+            if(ate){
+                if(length<max_len) {
+                    // Add new segment at the old tail position
+                    sx[length] = old_tail_x;
+                    sy[length] = old_tail_y;
+                    length++;
+                }
                 // increase speed a bit as snake grows
                 step_ticks = base_ticks - (length/6);
                 if(step_ticks < 2) step_ticks = 2;
-				// place new food not on snake (naive scan)
-				for(int tries=0; tries<screen_w*screen_h; tries++){
-					foodx = (foodx + 7) % screen_w; foody = (foody + 3) % screen_h;
-					int on_body = 0;
-					for(int k=0;k<length;k++){ if(sx[k]==foodx && sy[k]==foody){ on_body = 1; break; } }
-					if(!on_body) break;
-				}
-			}
+                // place new food not on snake (naive scan)
+                for(int tries=0; tries<screen_w*screen_h; tries++){
+                    foodx = (foodx + 7) % screen_w; foody = (foody + 3) % screen_h;
+                    int on_body = 0;
+                    for(int k=0;k<length;k++){ if(sx[k]==foodx && sy[k]==foody){ on_body = 1; break; } }
+                    if(!on_body) break;
+                }
+            }
             vga_pointer[2*foodx + 160*foody] = '*';
             for(int draw_i=0; draw_i<length; draw_i++){
                 vga_pointer[2*sx[draw_i] + 160*sy[draw_i]] = (draw_i==0 ? 'O' : 'o');
             }
-			next_tick: ;
         }
     }
 end_snake:
