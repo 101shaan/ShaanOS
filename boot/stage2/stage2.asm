@@ -17,7 +17,7 @@ pop word[FATSect]
 EnableA20:
 in al, 0x92
 or al, 2
-out 0x92, al  ;This enables A20 on my acer PC -- A potential source for errors :(
+out 0x92, al  ;potential error here - a20 stuff
 
 
 ;--------Need to get memory map-------
